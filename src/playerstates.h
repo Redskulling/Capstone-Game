@@ -1,0 +1,6 @@
+#pragma once
+
+#define PLAYER_STATE_MOVING     0x01
+#define PLAYER_STATE_DASH       0x02
+#define PLAYER_STATE_STATIONARY 0x03
+#define PLAYER_STATE_ATTACKING  0x04
