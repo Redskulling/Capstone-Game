@@ -13,9 +13,13 @@ Vector2d<T>::operator Vector2() const {
 
 template <class T>
 Vector2d<T>::operator bool() const {
-	bool out;
-	out = (this->x || this->y);
+	bool out = (this->x || this->y);
 	return out;
+}
+
+template <class T>
+bool Vector2d<T>::operator==(const Vector2d<T> &rhs) const {
+	return ((this->x == rhs.x) && (this->y == rhs.y));
 }
 
 template <class T>
@@ -29,6 +33,25 @@ template <class T>
 Vector2d<T> Vector2d<T>::operator+(const Vector2d<T> &rhs) {
     return { this->x + rhs.x, 
 	       this->y + rhs.y };
+}
+
+template <class T>
+Vector2d<T> Vector2d<T>::operator-=(const Vector2d<T> &rhs) {
+    this->x -= rhs.x;
+	this->y -= rhs.y;
+	return *this;
+}
+
+template <class T>
+Vector2d<T> Vector2d<T>::operator-(const Vector2d<T> &rhs) {
+    return { this->x -rhs.x, 
+	       this->y - rhs.y };
+}
+
+template <class T>
+Vector2d<T> Vector2d<T>::operator-() {
+    return { -this->x, 
+	       -this->y };
 }
 
 template <class T>

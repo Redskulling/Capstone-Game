@@ -1,21 +1,34 @@
 #include "player.h"
+#include "playerstatefunc.h"
 
-Player::Player(f32 x, f32 y, s32 gamepad, f32 radius) : gamepad(gamepad) {
-	this->pos.x = x;
-	this->pos.y = y;
+Player::Player(v2f pos, s32 gamepad, f32 radius) : Entity(pos, {5, 5, 5, 5, 1, 0, 1}, {32, 32}, 0) {
 	this->hitbox.radius = radius;
 	this->hitbox.centre = { MAX_NEG_INT, MAX_NEG_INT };
 }
 
-Player::Player() {
-	this->pos.x = 0;
-	this->pos.y = 0;
+Player::Player() : Entity(pos, {5, 5, 1, 0, 1}, {32, 32}, 0) {
 	this->gamepad = GAMEPAD_PLAYER1;
 	this->hitbox.radius = 30.0f;
 	this->hitbox.centre = { MAX_NEG_INT, MAX_NEG_INT };
 }
 
-Player::~Player() {}
+// Player::~Player() {}
+
+void Player::Draw() {
+	DrawRectangle(this->pos.x, this->pos.y, this->size.x, this->size.y, BLACK);
+}
+
+void Player::Update() {
+	runPlayerState(this);
+}
+
+void Player::Update(Player *p, std::vector<Entity *> e) {
+	runPlayerState(p);
+}
+
+bool Player::checkCollision(Entity *e) {
+	return 0;
+}
 
 f32 fixGamepadAxisDeadzone(s32 gamepad, s32 axis, f32 deadzoneSize) {
 	f32 movement = GetGamepadAxisMovement(gamepad, axis);

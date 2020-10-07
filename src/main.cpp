@@ -1,21 +1,25 @@
 #include "types.h"
 
 #include <string>
-#include <raylib.h>
-#include "../math/Vector2.h"
+#include <vector>
+
+#define PHYSAC_IMPLEMENTATION
+#include "commonincludes.h"
+
 #include "player.h"
 #include "playerstatefunc.h"
 
-#include "enimy.h"
+#include "entity.h"
+#include "slime.h"
 
 typedef Color Colour;
 
 #if defined(PLATFORM_RPI)
-    #define XBOX360_NAME_ID     "Microsoft X-Box 360 pad"
-    #define PS3_NAME_ID         "PLAYSTATION(R)3 Controller"
+	#define XBOX360_NAME_ID     "Microsoft X-Box 360 pad"
+	#define PS3_NAME_ID         "PLAYSTATION(R)3 Controller"
 #else
-    #define XBOX360_NAME_ID     "Xbox 360 Controller"
-    #define PS3_NAME_ID         "PLAYSTATION(R)3 Controller"
+	#define XBOX360_NAME_ID     "Xbox 360 Controller"
+	#define PS3_NAME_ID         "PLAYSTATION(R)3 Controller"
 #endif
 
 
@@ -27,16 +31,23 @@ int main(void) {
 	const int screenHeight = 450;
 
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
 	InitWindow(screenWidth, screenHeight, "Title?");	
 
-	// SetTargetFPS(1);
+	SetTargetFPS(60);
 
-    Camera2D camera = { 0 };
-	Player *player = new Player(10.0f, 10.0f, GAMEPAD_PLAYER1, 30.0f);
+	std::vector<Entity *> e;
+
+	Camera2D camera = { 0 };
+	Player *player = new Player({10.0f, 10.0f}, GAMEPAD_PLAYER1, 30.0f);
 	player->forwardVel = 120.0f;
 
-	Enimy *enimy = new Enimy({50.0f, 50.0f}, {1, 0, 5, 0}, {25.0f, 25.0f});
+	e.push_back(player);
+
+	// for (int i = 0; i < 2; i++) 
+		e.push_back(new Slime({ (f32) GetRandomValue(0, 800),  (f32) GetRandomValue(0, 450) }, e.size()));
+
 
 	setPlayerState(player, PLAYER_STATE_STATIONARY);
 
@@ -47,26 +58,35 @@ int main(void) {
 
 	while (!WindowShouldClose()) {
 
-		player->deltaTime = GetFrameTime();
+		for (Entity *entities : e)
+			entities->deltaTime = GetFrameTime();
+
+		// player->deltaTime = GetFrameTime();
 		
 		getPlayerInput(player);
 
-		runPlayerState(player);
+		for (int i = 0; i < e.size(); i++)
+				e[i]->Update(player, e);
 
-		camera.target = (Vector2) (player->pos + v2f{ 25.0f, 25.0f }).floor();
+		// runPlayerState(player);
+
+		camera.target = (Vector2) (player->pos + player->size / 2.0f).floor();
 
 		BeginDrawing();
 		
-        {
+		{
 
 			ClearBackground(RAYWHITE);
 
-            BeginMode2D(camera);
+			BeginMode2D(camera);
 
-			DrawRectangle((int) player->pos.x, (int) player->pos.y, 50, 50, BLACK);
+			for (int i = 0; i < e.size(); i++)
+				(e[i])->Draw();
+
+			// player->Draw();
 			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
 
-			DrawRectangle(enimy->pos.x, enimy->pos.y, enimy->size.x, enimy->size.y, RED);
+
 
 			DrawText(TextFormat("TIME: %f", GetFrameTime()), 10, 100, 20, BLACK);
 
@@ -76,16 +96,20 @@ int main(void) {
 			DrawText(TextFormat("AXIS: %f", player->rightAxis.y), 10, 225, 20, BLACK);
 			DrawText(TextFormat("dashTimer: %f", player->dashTimer), 10, 250, 20, BLACK);
 			DrawText(TextFormat("state: %i", player->input), 10, 275, 20, BLACK);
-     
+	 
 			
 			EndMode2D();
 
 		}
 
 		EndDrawing();
+
+		if (IsWindowResized())
+			camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
 	}
 
-	CloseWindow();
+	CloseWindow();        // Close window and OpenGL context
 
 	return 0;
 }
+

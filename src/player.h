@@ -5,16 +5,16 @@
 #include "playerstates.h"
 #include "stats.h"
 
+#include "entity.h"
+
 struct Circle {
 	v2i centre;
 	f32 radius;
 };
 
-class Player {
+class Player : public Entity {
 public:
-	v2f pos;
 	f32 forwardVel;
-	f32 deltaTime;
 	
 	u32 input;
 	v2f leftAxis;
@@ -31,12 +31,18 @@ public:
 	u32 state;
 	Circle hitbox;
 
-	Stats stats;
+public:
+	Player(v2f pos, s32 gamepad, f32 radius);
+	Player();
+	// ~Player();
 
 public:
-	Player(f32 x, f32 y, s32 gamepad, f32 radius);
-	Player();
-	~Player();
+	void Draw();
+	void Update();
+	virtual void Update(Player *p, std::vector<Entity *> e);
+	bool checkCollision(Entity *e);
+
+private:
 };
 
 void getPlayerInput(Player *player);

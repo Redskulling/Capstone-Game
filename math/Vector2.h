@@ -15,10 +15,16 @@ struct Vector2d {
 	operator Vector2() const;
 	operator bool()    const;
 
+	bool operator ==(const Vector2d &rhs)  const;
+
 	inline Vector2d(Vector2 vec) : x(vec.x), y(vec.y) {} ;
 
 	Vector2d operator+= (const Vector2d &rhs); 
 	Vector2d operator+  (const Vector2d &rhs);
+
+	Vector2d operator-= (const Vector2d &rhs); 
+	Vector2d operator-  (const Vector2d &rhs);
+	Vector2d operator-  ();
 
 	Vector2d operator*= (const Vector2d &rhs);
 	Vector2d operator*  (const Vector2d &rhs);
