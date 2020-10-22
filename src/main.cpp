@@ -1,16 +1,24 @@
 #include "types.h"
 
+#include <time.h>
+
+u32 lehmerSeed = time(NULL);
+
+#include "../math/random.h"
+
 #include <string>
 #include <vector>
 
-#define PHYSAC_IMPLEMENTATION
 #include "commonincludes.h"
 
-#include "player.h"
-#include "playerstatefunc.h"
+#include "entity/player.h"
 
-#include "entity.h"
-#include "slime.h"
+#include "entity/entity.h"
+#include "entity/slime.h"
+
+#include "map/map.h"
+
+#include "item/item.h"
 
 typedef Color Colour;
 
@@ -35,26 +43,51 @@ int main(void) {
 
 	InitWindow(screenWidth, screenHeight, "Title?");	
 
-	SetTargetFPS(60);
+	SetExitKey(-1);	
+	// SetTargetFPS(1);
+
+	std::vector<Item *> item;
+	for (int i = 0; i < 25; i++) 
+		item.push_back(new Item{"TEST", 99, {randomFloat(0, 100), randomFloat(0, 100)}, i});
 
 	std::vector<Entity *> e;
 
 	Camera2D camera = { 0 };
-	Player *player = new Player({10.0f, 10.0f}, GAMEPAD_PLAYER1, 30.0f);
+	Player *player = new Player({0.0f, 0.0f}, GAMEPAD_PLAYER1, 30.0f, item);
 	player->forwardVel = 120.0f;
 
 	e.push_back(player);
 
-	// for (int i = 0; i < 2; i++) 
+	for (int i = 0; i < 25; i++) 
 		e.push_back(new Slime({ (f32) GetRandomValue(0, 800),  (f32) GetRandomValue(0, 450) }, e.size()));
 
+	player->setState(PLAYER_STATE_STATIONARY);
 
-	setPlayerState(player, PLAYER_STATE_STATIONARY);
-
-	camera.target = (Vector2){ player->pos.x + 20, player->pos.y + 20 };
-	camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
+	camera.target = { player->pos.x + 20, player->pos.y + 20 };
+	camera.offset = {screenWidth/2, screenHeight/2};
 	camera.rotation = 0.0f;
 	camera.zoom = 1.0f;
+
+
+	printf("%f\n", randomFloat(10.256f, 140.431f));
+
+	// Camera2D camera2 = { 0 };
+
+	// camera2.target = e[5]->pos + e[5]->size / 2.0f;
+	// camera2.offset = { screenWidth-250/2, screenHeight-250/2 };
+	// camera2.rotation = 0.0f;
+	// camera2.zoom = 1.0f;
+
+	Map *currentMap = new Map({5, 10});
+
+	for (int i = 0; i < currentMap->size.x; i++) {
+		for (int j = 0; j < currentMap->size.y; j++) {
+			printf("%X", currentMap->getTile({i, j}).type);
+		}
+		puts(" ");
+	}
+
+	s32 itemNumber = 0;
 
 	while (!WindowShouldClose()) {
 
@@ -66,11 +99,13 @@ int main(void) {
 		getPlayerInput(player);
 
 		for (int i = 0; i < e.size(); i++)
-				e[i]->Update(player, e);
+				e[i]->Update(player, e, currentMap);
 
 		// runPlayerState(player);
 
 		camera.target = (Vector2) (player->pos + player->size / 2.0f).floor();
+		// camera2.target = (Vector2) (e[5]->pos + e[5]->size / 2.0f).floor();
+
 
 		BeginDrawing();
 		
@@ -83,30 +118,63 @@ int main(void) {
 			for (int i = 0; i < e.size(); i++)
 				(e[i])->Draw();
 
+			for (Item *drop : item)
+				drop->Draw();
+
 			// player->Draw();
 			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
 
+			// currentMap->Draw();
 
+			v2i tmp = player->map->getTileCords(player->pos);
 
 			DrawText(TextFormat("TIME: %f", GetFrameTime()), 10, 100, 20, BLACK);
 
-			DrawText(TextFormat("AXIS: %f", player->pos.x),  10, 150, 20, BLACK);
-			DrawText(TextFormat("AXIS: %f", player->pos.y),  10, 175, 20, BLACK);
+			itemNumber += GetMouseWheelMove();
+			if (itemNumber >= (s32) player->inventory.slots.size())
+				itemNumber = 0;
+			if (itemNumber < 0)
+				itemNumber = (s32) player->inventory.slots.size() - 1;
+
+			DrawText(TextFormat("Item #%i: %s, %i", itemNumber, player->inventory.slots[itemNumber].item.name.c_str(), player->inventory.slots[itemNumber].item.count),
+			         player->pos.x, player->pos.y - 55, 10, BLACK);
+
+			DrawText(TextFormat("AXIS: %i", tmp.x),  player->pos.x, player->pos.y - 40, 10, BLACK);
+			DrawText(TextFormat("AXIS: %i", tmp.y),  player->pos.x, player->pos.y - 25, 10, BLACK);
 			DrawText(TextFormat("AXIS: %f", player->rightAxis.x), 10, 200, 20, BLACK);
 			DrawText(TextFormat("AXIS: %f", player->rightAxis.y), 10, 225, 20, BLACK);
 			DrawText(TextFormat("dashTimer: %f", player->dashTimer), 10, 250, 20, BLACK);
 			DrawText(TextFormat("state: %i", player->input), 10, 275, 20, BLACK);
+			DrawText(TextFormat("eh: %X", player->map->getTile(player->map->getTileCords(player->pos)).type), player->pos.x, player->pos.y - 10, 10, BLACK);
 	 
 			
 			EndMode2D();
+
+			// BeginMode2D(camera2);
+			// BeginScissorMode(GetScreenWidth() - 250, GetScreenHeight() - 250, 250, 250);
+			// ClearBackground(LIGHTGRAY);
+			// for (int i = 0; i < e.size(); i++)
+			// 	(e[i])->Draw();
+
+			// EndScissorMode();
+			// EndMode2D();
 
 		}
 
 		EndDrawing();
 
-		if (IsWindowResized())
-			camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
+		if (IsWindowResized()) {
+			camera.offset = { (f32) (GetScreenWidth()/2), (f32) (GetScreenHeight()/2) };
+			// camera2.offset = { (f32) (GetScreenWidth()-250/2), (f32) (GetScreenHeight()-250/2)};
+		}
 	}
+
+	for (std::vector<Entity *>::reverse_iterator i = e.rbegin(); i != e.rend(); i++) {
+		delete (*i);
+		e.pop_back();
+	}
+
+	delete currentMap;
 
 	CloseWindow();        // Close window and OpenGL context
 

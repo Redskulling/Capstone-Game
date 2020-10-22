@@ -1,16 +1,18 @@
 #include "player.h"
-#include "playerstatefunc.h"
 
-Player::Player(v2f pos, s32 gamepad, f32 radius) : Entity(pos, {5, 5, 5, 5, 1, 0, 1}, {32, 32}, 0) {
+Player::Player(v2f pos, s32 gamepad, f32 radius, std::vector<Item *> &item) : itemDrops(item), Entity(pos, {5, 5, 5, 5, 1, 0, 1}, {32, 32}, 0) {
 	this->hitbox.radius = radius;
 	this->hitbox.centre = { MAX_NEG_INT, MAX_NEG_INT };
+	this->state = PLAYER_STATE_STATIONARY;
 }
 
-Player::Player() : Entity(pos, {5, 5, 1, 0, 1}, {32, 32}, 0) {
-	this->gamepad = GAMEPAD_PLAYER1;
-	this->hitbox.radius = 30.0f;
-	this->hitbox.centre = { MAX_NEG_INT, MAX_NEG_INT };
-}
+// Player::Player() : Entity(pos, {5, 5, 1, 0, 1}, {32, 32}, 0) {
+// 	this->gamepad = GAMEPAD_PLAYER1;
+// 	this->hitbox.radius = 30.0f;
+// 	this->hitbox.centre = { MAX_NEG_INT, MAX_NEG_INT };
+// 	this->state = PLAYER_STATE_STATIONARY;
+// 	this->itemDrops = nullptr;
+// }
 
 // Player::~Player() {}
 
@@ -18,12 +20,12 @@ void Player::Draw() {
 	DrawRectangle(this->pos.x, this->pos.y, this->size.x, this->size.y, BLACK);
 }
 
-void Player::Update() {
-	runPlayerState(this);
+void Player::Update(Map *map) {
+	this->runState(map);
 }
 
-void Player::Update(Player *p, std::vector<Entity *> e) {
-	runPlayerState(p);
+void Player::Update(Player *p, std::vector<Entity *> e, Map *map) {
+	this->runState(map);
 }
 
 bool Player::checkCollision(Entity *e) {
@@ -88,6 +90,16 @@ void getPlayerInput(Player *p) {
 
 }
 
-void setPlayerState(Player *p, u32 state) {
-	p->state = state;
+void Player::setState(u32 state) {
+	this->state = state;
+}
+
+bool Player::collideItems() {
+	for (Item *item : this->itemDrops) {
+		if (item->name == "NULL")
+			continue;
+		if (CheckCollisionRecs(this->Rect(), item->Rect()))
+			return this->inventory.addItem(*item);
+	}
+	return 0;
 }
