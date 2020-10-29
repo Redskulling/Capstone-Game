@@ -44,7 +44,7 @@ int main(void) {
 	InitWindow(screenWidth, screenHeight, "Title?");	
 
 	SetExitKey(-1);	
-	// SetTargetFPS(1);
+	SetTargetFPS(60);
 
 	std::vector<Item *> item;
 	for (int i = 0; i < 20; i++) 
@@ -124,7 +124,6 @@ int main(void) {
 			for (Item *drop : item)
 				drop->Draw();
 
-			// player->Draw();
 			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
 
 			currentMap->Draw();
@@ -151,7 +150,6 @@ int main(void) {
 			v2f mouseTile = { GetMousePosition().x, GetMousePosition().y };
 	 		Tile t = currentMap->getTilePos(mouseTile);
 			EndMode2D();
-			DrawText(TextFormat("Tile: %i, %i, %i", t.pos.x, t.pos.y, t.type), mouseTile.x, mouseTile.y - 20, 10, BLACK);
 
 			// BeginMode2D(camera2);
 			// BeginScissorMode(GetScreenWidth() - 250, GetScreenHeight() - 250, 250, 250);

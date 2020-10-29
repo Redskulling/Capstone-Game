@@ -38,7 +38,12 @@ void Player::stateDash() {
 	v2f ceilLeftAxis = {(this->leftAxis.x > 0 ? ceilf32(this->leftAxis.x) : floorf32(this->leftAxis.x)), 
 		(this->leftAxis.y > 0 ? ceilf32(this->leftAxis.y) : floorf32(this->leftAxis.y)) };
 
+	
 	this->pos += ceilLeftAxis * 500.0f * this->deltaTime;
+
+	this->collideMap(this->map);
+	this->collideItems();
+
 	if ((this->dashTimer -= this->deltaTime) <= 0) {
 		this->dashTimer = 0;
 		return this->setState(PLAYER_STATE_MOVING);

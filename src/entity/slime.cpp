@@ -9,6 +9,7 @@ void Slime::Update(Player *p, std::vector<Entity *> e, Map *map) {
 	this->leftAxis *= (f32) this->stats.spd * 100.0f * this->deltaTime;  // Set Speed
 
 	this->collide(e);
+	this->collideMap(map);
 	this->receiveDamage(p);
 }
 
