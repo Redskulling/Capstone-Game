@@ -47,8 +47,11 @@ int main(void) {
 	// SetTargetFPS(1);
 
 	std::vector<Item *> item;
-	for (int i = 0; i < 25; i++) 
-		item.push_back(new Item{"TEST", 99, {randomFloat(0, 100), randomFloat(0, 100)}, i});
+	for (int i = 0; i < 20; i++) 
+		item.push_back(new Item{"TEST", randomInt(1, 10), {randomFloat(0, 100), randomFloat(0, 100)}, (s32) item.size()});
+
+	for (int i = 0; i < 5; i++)
+		item.push_back(new Item{"TEST2", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size()});
 
 	std::vector<Entity *> e;
 
@@ -78,10 +81,10 @@ int main(void) {
 	// camera2.rotation = 0.0f;
 	// camera2.zoom = 1.0f;
 
-	Map *currentMap = new Map({5, 10});
+	Map *currentMap = new Map(50.0f, {5, 10});
 
-	for (int i = 0; i < currentMap->size.x; i++) {
-		for (int j = 0; j < currentMap->size.y; j++) {
+	for (int j = 0; j < currentMap->size.y; j++) {
+		for (int i = 0; i < currentMap->size.x; i++) {
 			printf("%X", currentMap->getTile({i, j}).type);
 		}
 		puts(" ");
@@ -124,9 +127,7 @@ int main(void) {
 			// player->Draw();
 			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
 
-			// currentMap->Draw();
-
-			v2i tmp = player->map->getTileCords(player->pos);
+			currentMap->Draw();
 
 			DrawText(TextFormat("TIME: %f", GetFrameTime()), 10, 100, 20, BLACK);
 
@@ -139,16 +140,18 @@ int main(void) {
 			DrawText(TextFormat("Item #%i: %s, %i", itemNumber, player->inventory.slots[itemNumber].item.name.c_str(), player->inventory.slots[itemNumber].item.count),
 			         player->pos.x, player->pos.y - 55, 10, BLACK);
 
-			DrawText(TextFormat("AXIS: %i", tmp.x),  player->pos.x, player->pos.y - 40, 10, BLACK);
-			DrawText(TextFormat("AXIS: %i", tmp.y),  player->pos.x, player->pos.y - 25, 10, BLACK);
+
+			DrawText(TextFormat("Pos: %.2f, %.2f", player->pos.x, player->pos.y), player->pos.x, player->pos.y - 25, 10, BLACK);
 			DrawText(TextFormat("AXIS: %f", player->rightAxis.x), 10, 200, 20, BLACK);
 			DrawText(TextFormat("AXIS: %f", player->rightAxis.y), 10, 225, 20, BLACK);
 			DrawText(TextFormat("dashTimer: %f", player->dashTimer), 10, 250, 20, BLACK);
 			DrawText(TextFormat("state: %i", player->input), 10, 275, 20, BLACK);
-			DrawText(TextFormat("eh: %X", player->map->getTile(player->map->getTileCords(player->pos)).type), player->pos.x, player->pos.y - 10, 10, BLACK);
+			DrawText(TextFormat("eh: %X", player->map->getTilePos(player->pos).type), player->pos.x, player->pos.y - 10, 10, BLACK);
 	 
-			
+			v2f mouseTile = { GetMousePosition().x, GetMousePosition().y };
+	 		Tile t = currentMap->getTilePos(mouseTile);
 			EndMode2D();
+			DrawText(TextFormat("Tile: %i, %i, %i", t.pos.x, t.pos.y, t.type), mouseTile.x, mouseTile.y - 20, 10, BLACK);
 
 			// BeginMode2D(camera2);
 			// BeginScissorMode(GetScreenWidth() - 250, GetScreenHeight() - 250, 250, 250);

@@ -17,7 +17,7 @@ Player::Player(v2f pos, s32 gamepad, f32 radius, std::vector<Item *> &item) : it
 // Player::~Player() {}
 
 void Player::Draw() {
-	DrawRectangle(this->pos.x, this->pos.y, this->size.x, this->size.y, BLACK);
+	DrawRectangleRec(this->Rect(), BLACK);
 }
 
 void Player::Update(Map *map) {

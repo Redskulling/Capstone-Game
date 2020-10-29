@@ -29,15 +29,23 @@ Inventory::Inventory() : slots{{Slot()}}, armourSlots{{Slot()}}, holdSlots{{Slot
 
 u8 Inventory::addItem(Item &item) {
 	for (int i = 0; i < this->slots.size(); i++) {
+		if (item.name == "NULL" || item.count <= 0) {
+			item.name = "NULL";
+			item.count = 0;
+			return 2;
+		}
 		if (this->slots[i].item.name == "NULL") {
 			this->slots[i].item = item;
 			item.name = "NULL";
+			item.count = 0;
 			return 1;
 		} else if (this->slots[i].item.name == item.name) {
 			this->slots[i].item.count += item.count;
 			if (this->slots[i].item.count >= 100) {
 				item.count = this->slots[i].item.count - 99;
 				this->slots[i].item.count = 99;
+				if (item.count <= 0)
+					item.name = "NULL";
 				continue;
 			}
 			item.count = 0;

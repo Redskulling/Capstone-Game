@@ -57,47 +57,62 @@ void Entity::collideMap(Map *map) {
 	if (this->dead)
 		return;
 
-	if ((map->getTile(map->getTileCords(this->pos)).type == 0x80000000) && 
+	if ((map->getTilePos((this->pos)).type == 0x80000000) && 
 		((map->getTile((v2i)((this->pos + this->size) / (f32) map->tileSize)).type == 0x80000000)))
 		return;
-
 
 	bool col;
 	s32 numCollisions = 0;
 
 	while (numCollisions < 3) {
-		f32 angle = getAngle(this->leftAxis.x, this->leftAxis.y);
-		if (angle < 0)
-			break;
-		
-		Rectangle mapRect = map->rect((v2i) (this->pos / (f32) map->tileSize));
-		// mapRect = (((map->getTile(map->getTileCords(this->pos)).type & 1) ||
-		// (map->getTile(map->getTileCords(this->pos + this->size)).type & 1)) ? mapRect : Rectangle{ NAN });
-		col = CheckCollisionRecs(mapRect, this->Rect());
+		Rectangle mapRect = map->Rect(this->pos);
 
-		col &= ((map->getTile(map->getTileCords(this->pos)).type & 1) ||
-		        (map->getTile(map->getTileCords(this->pos + this->size)).type & 1));
+		col = CheckCollisionRecs(mapRect, this->Rect());
+		col &= (map->getTilePos((this->pos)).type & 1);
+
+		if (!col) {
+			mapRect = map->Rect(this->pos + this->size);
+			col = CheckCollisionRecs(mapRect, this->Rect());
+			col &= (map->getTilePos((this->pos + this->size)).type & 1);
+		}
+
+		if (!col) {
+			mapRect = map->Rect(this->pos + this->size * v2f{1, 0});
+			col = CheckCollisionRecs(mapRect, this->Rect());
+			col &= (map->getTilePos((this->pos + this->size * v2f{1, 0})).type & 1);
+		}
+
+		if (!col) {
+			mapRect = map->Rect(this->pos + this->size * v2f{0, 1});
+			col = CheckCollisionRecs(mapRect, this->Rect());
+			col &= (map->getTilePos((this->pos + this->size * v2f{0, 1})).type & 1);
+		}
 
 		if (!col)
 			break;
 
+		v2f playerTmpAngle = v2f((mapRect.x + map->tileSize / 2), (mapRect.y + map->tileSize / 2)) - (this->pos + this->size / 2);
+		f32 angle = getAngle(playerTmpAngle.x, playerTmpAngle.y);
+		if (angle < 0)
+			break;
+
 		if (0.0f < angle && angle <= 90.0f) {
-			this->pos.x = ( mapRect.x * map->tileSize ) - this->size.x - 1.0f;
+			this->pos.x = mapRect.x - this->size.x - 0.5f;
 			this->leftAxis.x = 0.0f;
 			numCollisions++;
 			continue;
 		} else if (90.0f < angle && angle <= 180.0f) {
-			this->pos.y = ( mapRect.y * map->tileSize ) - this->size.y - 1.0f;
+			this->pos.y = mapRect.y - this->size.y - 0.5f;
 			this->leftAxis.y = 0.0f;
 			numCollisions++;
 			continue;
 		} else if (180.0f < angle && angle <= 270.0f) {
-			this->pos.x = ( mapRect.x * map->tileSize ) + map->tileSize + 1.0f;
+			this->pos.x = mapRect.x + map->tileSize + 0.5f;
 			this->leftAxis.x = 0.0f;
 			numCollisions++;
 			continue;
 		} else if (270.0f < angle && angle <= 360.0f) {
-			this->pos.y = ( mapRect.y * map->tileSize ) + map->tileSize + 1.0f;
+			this->pos.y = mapRect.y + map->tileSize + 0.5f;
 			this->leftAxis.y = 0.0f;
 			numCollisions++;
 			continue;

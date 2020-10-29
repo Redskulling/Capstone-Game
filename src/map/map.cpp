@@ -1,45 +1,38 @@
 #include "map.h"
 #include "../../math/random.h"
-#include <raylib.h>
 
-Map::Map(v2i size) : size(size) {
-	this->tileSize = 50;
+Map::Map(f32 tileSize, v2i size) : tileSize(tileSize), size(size) {
 	this->tiles.reserve(size.x * size.y);
-	for (int i = 0; i < this->size.x; i++) {
-		for (int j = 0; j < this->size.y; j++) {
-			tiles.push_back({{i, j}, (u32) randomInt(0, 2)});
+	for (s32 x = 0; x < size.x; x++) {
+		for (s32 y = 0; y < size.y; y++) {
+			this->tiles[x + size.x * y].type = randomInt(0, 2);
+			this->tiles[x + size.x * y].pos = {x, y};
 		}
 	}
 }
 
-Map::~Map() {};
+Tile::Tile(v2i pos, s32 type) : pos(pos), type(type) {};
 
-v2i Map::getTileCords(const v2f &pos) {
-	return (( (v2i) pos) + this->size) / this->tileSize;
+Tile Map::getTile(v2i pos) {
+	u32 index = pos.x + this->size.x * pos.y;
+	if ((pos.x >= this->size.x || pos.x < 0) || (pos.y >= this->size.y || pos.y < 0))
+		return {{0x8000000, 0x8000000}, 0x8000000};
+	return this->tiles[index];
 }
 
-Tile Map::getTile(const v2i &pos) {
-	if (((this->size.x > pos.x) || (this->tileSize > pos.y)) || ((pos.x > 0) || (pos.y > 0)))
-		return this->tiles[pos.x + this->size.x * pos.y];
-	return {{-1, -1}, 0x80000000};
-}
+Tile Map::getTilePos(v2f pos) {
+	v2i newPos = (v2i) (pos / this->tileSize);
+	return this->getTile(newPos);
+};
 
 void Map::Draw() {
-	for (s32 i = 0; i < this->size.x; i++) {
-		for (s32 j = 0; j < this->size.y; j++) {
-			if (this->getTile({i, j}).type & 0x1)
-				DrawRectangle(this->getTile({0, 0}).pos.x + (i * this->tileSize), this->getTile({0, 0}).pos.y + (j * this->tileSize),
-					this->tileSize, this->tileSize, PURPLE);
-		}
+	for (int i = 0; i < this->size.x * this->size.y; i++) {
+		if (this->tiles[i].type & 1)
+			DrawRectangle(this->tiles[i].pos.x * this->tileSize, this->tiles[i].pos.y * this->tileSize, this->tileSize, this->tileSize, PURPLE);
 	}
 }
 
-Rectangle Map::rect(const v2i &pos) {
-	v2f temp = (v2f) this->getTile(pos).pos;
-	Rectangle r = { 0 };
-	r.x = temp.x;
-	r.y = temp.y;
-	r.width = this->tileSize;
-	r.height = this->tileSize;
-	return r;
+Rectangle Map::Rect(v2f pos) {
+	Tile tile = this->getTilePos(pos);
+	return {(f32) tile.pos.x * this->tileSize, (f32) tile.pos.y * this->tileSize, this->tileSize, this->tileSize};
 }

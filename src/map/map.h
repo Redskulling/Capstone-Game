@@ -1,25 +1,26 @@
 #pragma once
 #include "../../math/Vector2.h"
+#include "../types.h"
 #include <vector>
-
+#include <raylib.h>
 
 struct Tile {
 	v2i pos;
-	u32 type;
+	s32 type;
+
+	Tile(v2i pos, s32 type);
 };
 
 struct Map {
 	std::vector<Tile> tiles;
+	f32 tileSize;
 	v2i size;
-	s32 tileSize;
 
-	Map(v2i size);
-	~Map();
+	Map(f32 tileSize, v2i size);
+
+	Tile getTile(v2i pos);
+	Tile getTilePos(v2f pos);
 
 	void Draw();
-
-	v2i getTileCords(const v2f &pos);
-
-	Tile getTile(const v2i &pos);
-	Rectangle rect(const v2i &pos);
+	Rectangle Rect(v2f pos);
 };
