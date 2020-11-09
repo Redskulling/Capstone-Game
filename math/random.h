@@ -2,8 +2,6 @@
 
 #include "../src/types.h"
 
-extern u32 lehmerSeed;
-
 u32 lehmer32();
 
 u32 randomUInt();

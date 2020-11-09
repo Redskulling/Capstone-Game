@@ -23,13 +23,17 @@ public:
 	v2f size;
 
 	Stats stats;
+
+	Texture2D *texture;
+	v2f animRect;
+	s32 animTimer;
+	s32 xp;
 public:
-	virtual void Update(Player *p, std::vector<Entity *> e, Map *map) = 0;
+	virtual void Update(Player *p, std::vector<Entity *> &e, Map *map) = 0;
 	virtual void Draw() = 0;
 	virtual bool checkCollision(Entity *e) = 0;
-	virtual void collide(std::vector<Entity *> e) = 0;
+	virtual void collide(std::vector<Entity *> &e) = 0;
 	virtual void receiveDamage(Player *p) = 0;
-	virtual ~Entitybase();
 };
 
 class Entity : public Entitybase {
@@ -40,15 +44,18 @@ public:
 		this->size = size;
 		this->id = id;
 		this->dead = 0;
+		this->animRect = { 0, 0 };
+		this->animTimer = 6;
 	};
+
+	virtual void Draw();
 	
-	void Draw();
-	
-	void Update(Player *p, std::vector<Entity *> e, Map *map);
-	void collide(std::vector<Entity *> e);
-	void collideMap(Map *map);
+	void Update(Player *p, std::vector<Entity *> &e, Map *map);
+	void collide(std::vector<Entity *> &e);
+	void collideMap(Map *map, bool colHole);
 	void receiveDamage(Player *p);
-	
+	virtual ~Entity();
+
 	bool checkCollision(Entity *e);
 	Rectangle Rect();
 };

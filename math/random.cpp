@@ -1,5 +1,7 @@
 #include "random.h"
 
+#include <time.h>
+u32 lehmerSeed = time(NULL);
 
 u32 lehmer32() {
 	lehmerSeed += 0xe120fc15;

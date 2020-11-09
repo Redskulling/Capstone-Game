@@ -1,10 +1,7 @@
 #include "types.h"
 
-#include <time.h>
-
-u32 lehmerSeed = time(NULL);
-
 #include "../math/random.h"
+#include "../math/mathutils.h"
 
 #include <string>
 #include <vector>
@@ -41,54 +38,56 @@ int main(void) {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-	InitWindow(screenWidth, screenHeight, "Title?");	
+	InitWindow(screenWidth, screenHeight, "Title?");
 
-	SetExitKey(-1);	
-	SetTargetFPS(60);
+	Texture2D potions = LoadTexture("img/potions.png");
+	Texture2D slime   = LoadTexture("img/cube.png");
+
+	SetExitKey(-1);
+	// SetTargetFPS(60);
 
 	std::vector<Item *> item;
-	for (int i = 0; i < 20; i++) 
-		item.push_back(new Item{"TEST", randomInt(1, 10), {randomFloat(0, 100), randomFloat(0, 100)}, (s32) item.size()});
+	item.push_back(new Item("NULL", 0, {-1000, -1000}, 0, &potions));
+	// for (int i = 0; i < 5; i++) 
+	// 	item.push_back(new Item{"HEAL", randomInt(1, 10), {randomFloat(0, 100), randomFloat(0, 100)}, (s32) item.size(), &potions});
 
-	for (int i = 0; i < 5; i++)
-		item.push_back(new Item{"TEST2", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size()});
+	// for (int i = 0; i < 5; i++)
+	// 	item.push_back(new Item{"ATT", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size(), &potions});
+
+	// for (int i = 0; i < 5; i++)
+	// 	item.push_back(new Item{"DEF", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size(), &potions});
+
+	// for (int i = 0; i < 5; i++)
+	// 	item.push_back(new Item{"STAM", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size(), &potions});
 
 	std::vector<Entity *> e;
 
 	Camera2D camera = { 0 };
-	Player *player = new Player({0.0f, 0.0f}, GAMEPAD_PLAYER1, 30.0f, item);
+	Texture2D playerTexture = LoadTexture("img/player.png");
+	Player *player = new Player({0.0f, 0.0f}, GAMEPAD_PLAYER1, 16.0f, item, &playerTexture);
 	player->forwardVel = 120.0f;
 
 	e.push_back(player);
 
-	for (int i = 0; i < 25; i++) 
-		e.push_back(new Slime({ (f32) GetRandomValue(0, 800),  (f32) GetRandomValue(0, 450) }, e.size()));
-
 	player->setState(PLAYER_STATE_STATIONARY);
 
-	camera.target = { player->pos.x + 20, player->pos.y + 20 };
+	camera.target = player->pos + (player->size / 2.0f);
 	camera.offset = {screenWidth/2, screenHeight/2};
 	camera.rotation = 0.0f;
-	camera.zoom = 1.0f;
+	camera.zoom = 2.0f;
 
 
-	printf("%f\n", randomFloat(10.256f, 140.431f));
+	// printf("%f\n", randomFloat(10.256f, 140.431f));
 
 	// Camera2D camera2 = { 0 };
 
-	// camera2.target = e[5]->pos + e[5]->size / 2.0f;
+	// camera2.target = {110.0f, 110.0f};
 	// camera2.offset = { screenWidth-250/2, screenHeight-250/2 };
 	// camera2.rotation = 0.0f;
 	// camera2.zoom = 1.0f;
 
-	Map *currentMap = new Map(50.0f, {5, 10});
-
-	for (int j = 0; j < currentMap->size.y; j++) {
-		for (int i = 0; i < currentMap->size.x; i++) {
-			printf("%X", currentMap->getTile({i, j}).type);
-		}
-		puts(" ");
-	}
+	Map *currentMap = new Map("map0.map", "img/tileset.png", e, slime);
+	currentMap->NewMap(e);
 
 	s32 itemNumber = 0;
 
@@ -101,9 +100,15 @@ int main(void) {
 		
 		getPlayerInput(player);
 
-		for (int i = 0; i < e.size(); i++)
-				e[i]->Update(player, e, currentMap);
+		// if (IsKeyPressed(KEY_F5))
+		// 	currentMap->NewMap(e);
 
+
+		for (auto &ent : e)
+			if (ent->id != 0)
+				ent->Update(player, e, currentMap);
+
+		player->Update(player, e, currentMap);
 		// runPlayerState(player);
 
 		camera.target = (Vector2) (player->pos + player->size / 2.0f).floor();
@@ -116,17 +121,18 @@ int main(void) {
 
 			ClearBackground(RAYWHITE);
 
+
 			BeginMode2D(camera);
 
-			for (int i = 0; i < e.size(); i++)
-				(e[i])->Draw();
+			currentMap->Draw(camera);
+
+			for (auto &ent : e)
+				ent->Draw();
 
 			for (Item *drop : item)
 				drop->Draw();
 
 			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
-
-			currentMap->Draw();
 
 			DrawText(TextFormat("TIME: %f", GetFrameTime()), 10, 100, 20, BLACK);
 
@@ -136,17 +142,17 @@ int main(void) {
 			if (itemNumber < 0)
 				itemNumber = (s32) player->inventory.slots.size() - 1;
 
-			DrawText(TextFormat("Item #%i: %s, %i", itemNumber, player->inventory.slots[itemNumber].item.name.c_str(), player->inventory.slots[itemNumber].item.count),
-			         player->pos.x, player->pos.y - 55, 10, BLACK);
+			// DrawText(TextFormat("Item #%i: %s, %i", itemNumber, player->inventory.slots[itemNumber].item.name.c_str(), player->inventory.slots[itemNumber].item.count),
+			//          player->pos.x, player->pos.y - 55, 10, BLACK);
 
 
-			DrawText(TextFormat("Pos: %.2f, %.2f", player->pos.x, player->pos.y), player->pos.x, player->pos.y - 25, 10, BLACK);
-			DrawText(TextFormat("AXIS: %f", player->rightAxis.x), 10, 200, 20, BLACK);
-			DrawText(TextFormat("AXIS: %f", player->rightAxis.y), 10, 225, 20, BLACK);
-			DrawText(TextFormat("dashTimer: %f", player->dashTimer), 10, 250, 20, BLACK);
-			DrawText(TextFormat("state: %i", player->input), 10, 275, 20, BLACK);
-			DrawText(TextFormat("eh: %X", player->map->getTilePos(player->pos).type), player->pos.x, player->pos.y - 10, 10, BLACK);
-	 
+			// DrawText(TextFormat("Pos: %.2f, %.2f", player->pos.x, player->pos.y), player->pos.x, player->pos.y - 25, 10, BLACK);
+			// DrawText(TextFormat("AXIS: %f", player->rightAxis.x), 10, 200, 20, BLACK);
+			// DrawText(TextFormat("AXIS: %f", player->rightAxis.y), 10, 225, 20, BLACK);
+			// DrawText(TextFormat("dashTimer: %f", player->dashTimer), 10, 250, 20, BLACK);
+			// DrawText(TextFormat("state: %i", player->input), 10, 275, 20, BLACK);
+			// DrawText(TextFormat("eh: %i", GetGamepadAxisCount(0)), player->pos.x, player->pos.y - 10, 10, BLACK);
+
 			v2f mouseTile = { GetMousePosition().x, GetMousePosition().y };
 	 		Tile t = currentMap->getTilePos(mouseTile);
 			EndMode2D();
@@ -157,10 +163,35 @@ int main(void) {
 			// for (int i = 0; i < e.size(); i++)
 			// 	(e[i])->Draw();
 
+			// currentMap->Draw(camera);
+
 			// EndScissorMode();
 			// EndMode2D();
 
 		}
+
+		f32 currentHP = map(player->stats.hp, 1, player->stats.maxhp, 10, GetScreenWidth() / 10);
+
+		const char *hptxt = TextFormat("HP: %i/%i", player->stats.hp, player->stats.maxhp);
+		const char *sptxt = TextFormat("Stanima: %.0f/%.0f", player->stamina, player->maxStamina);
+		const char *xptxt = TextFormat("XP: %i/%i", player->xp, player->nextLevel);
+		if (MeasureText(xptxt, 20) < MeasureText(sptxt, 20))
+			DrawRectangle(8, 8, GetScreenWidth() / 10 + 20 + MeasureText(sptxt, 20), 72, GRAY);
+		else
+			DrawRectangle(8, 8, GetScreenWidth() / 10 + 20 + MeasureText(xptxt, 20), 72, GRAY);
+
+		DrawRectangle(10, 10, currentHP, 20, RED );
+		DrawText(hptxt, GetScreenWidth() / 10 + 20, 8, 20, RED);
+
+		f32 currentSP = map(player->stamina, 1, player->maxStamina, 10, GetScreenWidth() / 10);
+
+		DrawRectangle(10, 34, currentSP, 20, GREEN );
+		DrawText(sptxt, GetScreenWidth() / 10 + 20, 32, 20, GREEN);
+
+		f32 currentXP = map(player->xp, 1, player->nextLevel, 10, GetScreenWidth() / 10);
+
+		DrawRectangle(10, 58, currentXP, 20, PURPLE );
+		DrawText(xptxt, GetScreenWidth() / 10 + 20, 56, 20, PURPLE);	
 
 		EndDrawing();
 
@@ -168,14 +199,23 @@ int main(void) {
 			camera.offset = { (f32) (GetScreenWidth()/2), (f32) (GetScreenHeight()/2) };
 			// camera2.offset = { (f32) (GetScreenWidth()-250/2), (f32) (GetScreenHeight()-250/2)};
 		}
+
+		if (IsKeyPressed(KEY_EQUAL))
+			camera.zoom += 0.1f;
+		if (IsKeyPressed(KEY_MINUS))
+			camera.zoom -= 0.1f;
 	}
 
-	for (std::vector<Entity *>::reverse_iterator i = e.rbegin(); i != e.rend(); i++) {
-		delete (*i);
-		e.pop_back();
-	}
+	for (auto &a : e)
+		delete a;
+	e.clear();
 
-	delete currentMap;
+	for (auto &a : item)
+		delete a;
+	item.clear();
+
+	UnloadTexture(slime);
+	UnloadTexture(potions);
 
 	CloseWindow();        // Close window and OpenGL context
 

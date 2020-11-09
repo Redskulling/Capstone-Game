@@ -24,6 +24,7 @@ public:
 	v2f prevRightAxis;
 
 	s32 gamepad;
+	f32 invincibleTimer;
 
 	f32 dashTimer;
 
@@ -33,28 +34,33 @@ public:
 
 	Inventory inventory;
 	std::vector<Item *> &itemDrops;
+	f32 stamina, maxStamina;
+	s32 nextLevel;
 public:
-	Player(v2f pos, s32 gamepad, f32 radius, std::vector<Item *> &item);
-	// Player();
-	// ~Player();
+	Player(v2f pos, s32 gamepad, f32 radius, std::vector<Item *> &item, Texture2D *texture);
+	~Player();
 
 public:
 	void Draw();
-	void Update(Map *map);
-	virtual void Update(Player *p, std::vector<Entity *> e, Map *map);
+	void Update(Map *map,  std::vector<Entity *> &e);
+	virtual void Update(Player *p, std::vector<Entity *> &e, Map *map);
 
 public:
 	void setState(u32 state);
-	void runState(Map *map);
+	void runState(Map *map, std::vector<Entity *> &e);
 
 private:	
 	void stateStationary();
 	void stateMoving();
 	void stateDash();
 	void stateAttacking();
+	void stateSprinting();
+	virtual void collide(std::vector<Entity *> &e);
 
 	bool checkCollision(Entity *e);
 	bool collideItems();
+
+	void playAnim(s32 y, f32 = 1);
 };
 
 void getPlayerInput(Player *player);

@@ -5,13 +5,21 @@
 
 Item::Item() : name("NULL"), count(0), Entity({ 0, 0 }, {0, 0, 0, 0}, {32, 32}, -1) {}
 
-Item::Item(const std::string &name, s32 count, v2f pos, s32 id) : name(name), count(count), Entity(pos, {0, 0, 0, 0}, {32, 32}, id) {}
+Item::Item(const std::string &name, s32 count, v2f pos, s32 id, Texture2D *texture) : name(name), count(count), Entity(pos, {0, 0, 0, 0}, {32, 32}, id) {
+	this->texture = texture;
+}
 
 Item::~Item() {}
 
 void Item::Draw() {
-	if (this->name != "NULL")
-		DrawRectangleRec(this->Rect(), ORANGE);
+	if (this->name == "HEAL")
+		DrawTextureRec(*this->texture, {0, 0, 32, 32}, this->pos, WHITE);
+	if (this->name == "ATT")
+		DrawTextureRec(*this->texture, {32, 0, 32, 32}, this->pos, WHITE);
+	if (this->name == "DEF")
+		DrawTextureRec(*this->texture, {64, 0, 32, 32}, this->pos, WHITE);
+	if (this->name == "STAM")
+		DrawTextureRec(*this->texture, {96, 0, 32, 32}, this->pos, WHITE);
 }
 
 Rectangle Item::Rect() {
@@ -72,6 +80,34 @@ u8 Inventory::removeItem(Item &item) {
 	return 0;
 }
 
+u8 Inventory::useItem(u32 slot) {
+	std::string &a = this->slots[slot].item.name;
+	if (a == "HEAL") {
+		this->slots[slot].item.count -= 1;
+		if (this->slots[slot].item.count == 0) 
+			this->slots[slot].item.name = "NULL";
+		return 1;
+	}
+	else if (a == "ATT") {
+		this->slots[slot].item.count -= 1;
+		if (this->slots[slot].item.count == 0) 
+			this->slots[slot].item.name = "NULL";
+		return 2;
+	}
+	else if (a == "DEF") {
+		this->slots[slot].item.count -= 1;
+		if (this->slots[slot].item.count == 0) 
+			this->slots[slot].item.name = "NULL";
+		return 3;
+	}
+	else if (a == "STAM") {
+		this->slots[slot].item.count -= 1;
+		if (this->slots[slot].item.count == 0) 
+			this->slots[slot].item.name = "NULL";
+		return 4;
+	}
+	return 0;
+}
 // ItemDrop::ItemDrop(const Item &item, v2f pos) : Item(item), pos(pos) {
 
 // }

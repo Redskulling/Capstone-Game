@@ -12,7 +12,7 @@ struct Item : public Entity {
 	s32 count;
 
 	Item();
-	Item(const std::string &name, s32 count, v2f pos, s32 id);
+	Item(const std::string &name, s32 count, v2f pos, s32 id, Texture2D *texture);
 	~Item();
 
 	void Draw();
@@ -28,12 +28,13 @@ struct Slot {
 };
 
 struct Inventory {
-	std::array<Slot, 15> slots;
+	std::array<Slot, 2> slots;
 	std::array<Slot, 4>  armourSlots;
 	std::array<Slot, 2>  holdSlots;
 
 	u8 addItem(Item &item);
 	u8 removeItem(Item &item);
+	u8 useItem(u32 slot);
 
 	Inventory();
 };

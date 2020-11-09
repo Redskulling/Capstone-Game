@@ -3,14 +3,14 @@
 #include "../map/map.h"
 #include <stdio.h>
 
-Entitybase::~Entitybase() {}
+Entity::~Entity() {}
 
 void Entity::Draw() {
 	if (!this->dead)
 		DrawRectangle(this->pos.x, this->pos.y, this->size.x, this->size.y, RED);
 }
 
-void Entity::Update(Player *p, std::vector<Entity *> e, Map *map) {
+void Entity::Update(Player *p, std::vector<Entity *> &e, Map *map) {
 	fprintf(stderr, "Called Update on Entity");
 }
 
@@ -24,6 +24,7 @@ Rectangle Entity::Rect() {
 }
 
 void Entity::receiveDamage(Player *p) {
+	if (this->dead) return;
 	if (!this->hit)
 		if (CheckCollisionCircleRec(p->hitbox.centre, p->hitbox.radius, this->Rect()))
 			this->stats.hp -= p->stats.str;
@@ -33,6 +34,7 @@ void Entity::receiveDamage(Player *p) {
 		if (this->stats.hp <= 0){
 			this->stats.hp = 0;
 			this->dead = 1;
+			p->itemDrops.push_back(new Item("HEAL", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
 	}
 
 	if (this->hit)
@@ -52,13 +54,21 @@ f32 getAngle(f32 x, f32 y) {
 	return angle;
 }
 
-void Entity::collideMap(Map *map) {
+u8 getCollideType(bool &col, u8 colType, bool colHole) {
+	if (colType & 1)
+		return col &= 1;
+	if (colType & (2 & (colHole << 1)))
+		return col &= 1;
+	return col = 0;
+}
+
+void Entity::collideMap(Map *map, bool colHole = 1) {
 	u8 numCol = 0;
 	if (this->dead)
 		return;
 
 	if ((map->getTilePos((this->pos)).type == 0x80000000) && 
-		((map->getTile((v2i)((this->pos + this->size) / (f32) map->tileSize)).type == 0x80000000)))
+		((map->getTile((v2u8)((this->pos + this->size) / (f32) map->tileSize)).type == 0x80000000)))
 		return;
 
 	bool col;
@@ -68,30 +78,30 @@ void Entity::collideMap(Map *map) {
 		Rectangle mapRect = map->Rect(this->pos);
 
 		col = CheckCollisionRecs(mapRect, this->Rect());
-		col &= (map->getTilePos((this->pos)).type & 1);
+		getCollideType(col, map->getTilePos(this->pos).type, colHole);
 
 		if (!col) {
 			mapRect = map->Rect(this->pos + this->size);
 			col = CheckCollisionRecs(mapRect, this->Rect());
-			col &= (map->getTilePos((this->pos + this->size)).type & 1);
+			getCollideType(col, map->getTilePos(this->pos + this->size).type, colHole);
 		}
 
 		if (!col) {
 			mapRect = map->Rect(this->pos + this->size * v2f{1, 0});
 			col = CheckCollisionRecs(mapRect, this->Rect());
-			col &= (map->getTilePos((this->pos + this->size * v2f{1, 0})).type & 1);
+			getCollideType(col, map->getTilePos(this->pos + this->size * v2f{1, 0}).type, colHole);
 		}
 
 		if (!col) {
 			mapRect = map->Rect(this->pos + this->size * v2f{0, 1});
 			col = CheckCollisionRecs(mapRect, this->Rect());
-			col &= (map->getTilePos((this->pos + this->size * v2f{0, 1})).type & 1);
+			getCollideType(col, map->getTilePos(this->pos + this->size * v2f{0, 1}).type, colHole);
 		}
 
 		if (!col)
 			break;
 
-		v2f playerTmpAngle = v2f((mapRect.x + map->tileSize / 2), (mapRect.y + map->tileSize / 2)) - (this->pos + this->size / 2);
+		v2f playerTmpAngle = v2f((mapRect.x + map->tileSize / 2), (mapRect.y + map->tileSize / 2)) - (this->pos + this->size / 2.0f);
 		f32 angle = getAngle(playerTmpAngle.x, playerTmpAngle.y);
 		if (angle < 0)
 			break;
@@ -120,7 +130,7 @@ void Entity::collideMap(Map *map) {
 	}
 }
 
-void Entity::collide(std::vector<Entity *> e) {
+void Entity::collide(std::vector<Entity *> &e) {
 
 	this->pos += this->leftAxis;
 

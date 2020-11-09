@@ -2,6 +2,7 @@
 
 template class Vector2d<f32>;
 template class Vector2d<s32>;
+template class Vector2d<u8>;
 
 template <class T>
 Vector2d<T>::operator Vector2() const {
@@ -16,6 +17,14 @@ Vector2d<T>::operator bool() const {
 	bool out = (this->x || this->y);
 	return out;
 }
+
+// template <class T>
+// Vector2d<T>::operator Vector2d<T>() const {
+// 	Vector2d<T> out;
+// 	out.x = (T) this->x;
+// 	out.x = (T) this->y;
+// 	return out;
+// }
 
 template <class T>
 bool Vector2d<T>::operator==(const Vector2d<T> &rhs) const {

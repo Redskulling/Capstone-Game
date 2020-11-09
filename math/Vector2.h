@@ -14,6 +14,7 @@ struct Vector2d {
 
 	operator Vector2() const;
 	operator bool()    const;
+	// operator Vector2d<T>() const;
 
 	bool operator ==(const Vector2d &rhs)  const;
 
@@ -48,6 +49,7 @@ struct Vector2d {
 
 typedef Vector2d<f32> v2f;
 typedef Vector2d<s32> v2i;
+typedef Vector2d<u8>  v2u8;
 
 Vector2d<s32> Vec2fToVec2i(Vector2d<s32> *out, const Vector2d<f32> &in);
 Vector2d<f32> Vec2iToVec2f(Vector2d<f32> *out, const Vector2d<s32> &in);
