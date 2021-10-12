@@ -6,8 +6,8 @@
 Map::Map(f32 tileSize, v2u8 size, const char *name) : tileSize(tileSize), size(size) {
 	this->tileSet = LoadTexture(name);
 	this->tiles.reserve(size.x * size.y + 1);
-	for (s32 x = 0; x < size.x; x++) {
-		for (s32 y = 0; y < size.y; y++) {
+	for (u8 x = 0; x < size.x; x++) {
+		for (u8 y = 0; y < size.y; y++) {
 			this->tiles[x + size.x * y].type = 0;
 			this->tiles[x + size.x * y].pos = {x, y};
 			this->tiles[x + size.x * y].tilePos = { 4, 0 };
@@ -27,21 +27,17 @@ Map::Map(const char *file, const char *fileName, std::vector<Entity *> &e, Textu
 	this->slime = &slime;
 	this->ReadFromFile(file, e);
 }
-#endif
 
 void Map::NewMap(std::vector<Entity *> &ent) {
 	std::string mapname = "map";
-	mapname += std::to_string(randomInt(0, 2));
+	mapname += std::to_string(randomInt(1, 5));
 	mapname += ".map";
-	printf("%i\n", ent.size());
 	for (auto &e : ent)
 		if (e->id != 0) delete e;
-	printf("%i\n", ent.size());
 	ent.resize(1);
-	printf("%i\n", ent.size());
 	this->ReadFromFile(mapname.c_str(), ent);
-	printf("%i\n", ent.size());
 }
+#endif
 
 Map::~Map() {
 	UnloadTexture(this->tileSet);
@@ -80,8 +76,8 @@ void Map::Draw(Camera2D &camera) {
 	v2u8 startPos = this->getTilePos(top).pos;
 	v2u8 endPos = this->getTilePos(bottom).pos;
 
-	for (u32 x = startPos.x; x <= endPos.x; x++) {
-		for (u32 y = startPos.y; y <= endPos.y; y++) {
+	for (u8 x = startPos.x; x <= endPos.x; x++) {
+		for (u8 y = startPos.y; y <= endPos.y; y++) {
 			const Tile &drawTile = this->getTile({x, y});
 			Rectangle drawRec = { ((f32) drawTile.tilePos.x * 32.0f), ((f32) drawTile.tilePos.y * 32.0f), 32.0f, 32.0f };
 
@@ -149,13 +145,16 @@ void Map::ReadFromFile(const char *file
 			#ifndef MAP_DEBUG
 			if (tmpTile.type & 0x08)
 				ent[0]->pos = (v2f) tmpTile.pos * 32.0f;
-			if (tmpTile.type & 0x10) {
+			if (tmpTile.type & 0x10) 
 				ent.emplace_back(new Slime((v2f) tmpTile.pos * 32.0f, ent.size()));
-			}
-			#endif
+			if (tmpTile.type & 0x20) 
+				ent.emplace_back(new Void((v2f) tmpTile.pos * 32.0f, ent.size()));
 		}
 		for (auto &a : ent)
 			if (a->id != 0) a->texture = slime;
+		#else
+		}
+		#endif
 		puts("Loaded!");
 	} else {
 		puts("Failed To Load Map :{");

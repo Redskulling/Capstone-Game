@@ -15,6 +15,8 @@ struct Circle {
 class Player : public Entity {
 public:
 	f32 forwardVel;
+	Texture2D attack;
+	u32 statPoints;
 	
 	u32 input;
 	v2f rightAxis;
@@ -36,6 +38,7 @@ public:
 	std::vector<Item *> &itemDrops;
 	f32 stamina, maxStamina;
 	s32 nextLevel;
+	u32 level;
 public:
 	Player(v2f pos, s32 gamepad, f32 radius, std::vector<Item *> &item, Texture2D *texture);
 	~Player();
@@ -48,6 +51,7 @@ public:
 public:
 	void setState(u32 state);
 	void runState(Map *map, std::vector<Entity *> &e);
+	void drawPauseScreen();
 
 private:	
 	void stateStationary();

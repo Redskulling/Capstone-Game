@@ -1,9 +1,10 @@
 #pragma once
+#include "../types.h"
 
 struct Stats {
-	int maxhp, hp;  // health
-	int maxmp, mp;  // magic
-	int str; // strength
-	int def; // defence
-	int spd; // speed
+	f32 maxhp, hp;  // health
+	f32 maxmp, mp;  // magic
+	f32 str; // strength
+	f32 def; // defence
+	f32 spd; // speed
 };

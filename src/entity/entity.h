@@ -61,3 +61,4 @@ public:
 };
 
 f32 getAngle(f32 x, f32 y);
+f32 calcDamage(Entity *attacker, Entity *defender);

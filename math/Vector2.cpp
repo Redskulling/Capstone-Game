@@ -4,6 +4,7 @@ template class Vector2d<f32>;
 template class Vector2d<s32>;
 template class Vector2d<u8>;
 
+#ifdef raylib
 template <class T>
 Vector2d<T>::operator Vector2() const {
 	Vector2 out;
@@ -11,6 +12,7 @@ Vector2d<T>::operator Vector2() const {
 	out.y = this->y;
 	return out;
 }
+#endif
 
 template <class T>
 Vector2d<T>::operator bool() const {
@@ -115,19 +117,19 @@ Vector2d<T> Vector2d<T>::operator/(T rhs) {
 
 template <class T>
 Vector2d<T> Vector2d<T>::floor() {
-    return { (T) floorf64(this->x), 
-	       (T) floorf64(this->y)};
+    return { (T) floorf(this->x), 
+	       (T) floorf(this->y)};
 }
 
 template <class T>
 Vector2d<T> Vector2d<T>::ceil() {
-    return { (T) ceilf64(this->x), 
-	       (T) ceilf64(this->y)};
+    return { (T) ceilf(this->x), 
+	       (T) ceilf(this->y)};
 }
 
 template <class T>
 T Vector2d<T>::mag() {
-    return sqrtf64((this->x * this->x) + (this->y * this->y));
+    return sqrtf((this->x * this->x) + (this->y * this->y));
 }
 
 

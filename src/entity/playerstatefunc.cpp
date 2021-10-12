@@ -1,5 +1,6 @@
 #include "player.h"
 #include "../map/map.h"
+#include "../types.h"
 #include <stdio.h>
 
 
@@ -21,18 +22,18 @@ void Player::playAnim(s32 y, f32 boost) {
 void useitem(Player *player) {
 	if (player->input & INPUT_ITEM_1 || player->input & INPUT_ITEM_2) {
 		switch (player->inventory.useItem((player->input & INPUT_ITEM_2 ? 1 : 0))) {
-			case 1:
+			case POTION_HEALTH:
 				player->stats.hp += 5;
 				if (player->stats.hp > player->stats.maxhp)
 					player->stats.hp = player->stats.maxhp;
 				break;
-			case 2:
+			case POTION_DEFENCE:
 				player->stats.def += 1;
 				break;
-			case 3:
+			case POTION_ATTACK:
 				player->stats.str += 1;
 				break;
-			case 4:
+			case POTION_STAMINA:
 				player->stamina += 40;
 				if (player->stamina > player->maxStamina)
 					player->stamina = player->maxStamina;
@@ -128,8 +129,8 @@ void Player::stateDash() {
 
 	this->stamina -= 80.0f * this->deltaTime;
 
-	v2f ceilLeftAxis = {(this->leftAxis.x > 0 ? ceilf32(this->leftAxis.x) : floorf32(this->leftAxis.x)), 
-		(this->leftAxis.y > 0 ? ceilf32(this->leftAxis.y) : floorf32(this->leftAxis.y)) };
+	v2f ceilLeftAxis = {(this->leftAxis.x > 0 ? ceilf(this->leftAxis.x) : floorf(this->leftAxis.x)), 
+		(this->leftAxis.y > 0 ? ceilf(this->leftAxis.y) : floorf(this->leftAxis.y)) };
 
 	this->pos += ceilLeftAxis * 500.0f * this->deltaTime;
 
@@ -171,12 +172,17 @@ void Player::runState(Map *map, std::vector<Entity *> &e) {
 		case PLAYER_STATE_ATTACKING:  this->stateAttacking();  break;
 		case PLAYER_STATE_SPRINTING:  this->stateSprinting();  break;
 	}
+	
 	if (this->xp >= this->nextLevel) {
 		this->stats.maxhp += 1;
 		this->stats.hp = this->stats.maxhp;
 		this->xp -= this->nextLevel;
-		this->nextLevel += 10 * (this->stats.maxhp - 10);
+		this->nextLevel += 10 * (this->level);
 		this->maxStamina += 10;
 		this->stamina = this->maxStamina;
+		this->statPoints += 2;
+		if (level % 10 == 0) {
+			this->statPoints += 1; // Give 3 stat points every 10th level
+		}
 	}
 }

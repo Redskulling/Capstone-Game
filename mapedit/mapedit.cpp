@@ -1,4 +1,4 @@
-// #define MAP_DEBUG
+//#define MAP_DEBUG
 #include <stdio.h>
 #include <raylib.h>
 #include <time.h>
@@ -25,6 +25,7 @@ int main(void) {
 
 
 	Map *currentMap = new Map(32.0f, {50, 50}, "img/tileset.png");
+	currentMap->ReadFromFile("default.map");
 
 	Rectangle player = /*new*/ Rectangle{ currentMap->size.x * currentMap->tileSize / 2, currentMap->size.y * currentMap->tileSize / 2, 32, 32 };
 	Camera2D camera = { 0 };
@@ -34,7 +35,7 @@ int main(void) {
 	camera.rotation = 0.0f;
 	camera.zoom = 1.0f;
 
-	u8 type = 1;
+	u8 type = 0;
 
 	while (!WindowShouldClose()) {
 
@@ -110,8 +111,24 @@ int main(void) {
 
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_LEFT_SHIFT)) {
 			currentMap->getTilePos(mouseTile).type |= type;
-			if (!type)
+			if (!type) {
 				currentMap->getTilePos(mouseTile).tilePos = cTile;
+				if (cTile == v2u8{0,0} || cTile == v2u8{0,1} || cTile == v2u8{0,2} || cTile == v2u8{0,3} ||
+				    cTile == v2u8{1,0} || cTile == v2u8{1,1} || cTile == v2u8{1,2} || cTile == v2u8{1,3} ||
+				    cTile == v2u8{2,0} || cTile == v2u8{2,1} || cTile == v2u8{2,2} || cTile == v2u8{2,3} ||
+				    cTile == v2u8{3,0} || cTile == v2u8{3,1} || cTile == v2u8{3,2} || cTile == v2u8{3,3} || cTile == v2u8{4,3}) {
+					currentMap->getTilePos(mouseTile).type &= 0x41;
+					currentMap->getTilePos(mouseTile).type |= 0x01;
+				} else if (cTile == v2u8{4,0}) {
+					currentMap->getTilePos(mouseTile).type &= ~(0x1 | 0x2 | 0x4);
+				} else if (cTile == v2u8{4,1}) {
+					currentMap->getTilePos(mouseTile).type &= 0x42;
+					currentMap->getTilePos(mouseTile).type |= 0x02;
+				} else if (cTile == v2u8{4,2}) {
+					currentMap->getTilePos(mouseTile).type &= 0x44;
+					currentMap->getTilePos(mouseTile).type |= 0x04;
+				}
+			}
 		}
 		else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
 			cTile = (v2u8)((v2i) GetMousePosition() / 64);
@@ -125,7 +142,7 @@ int main(void) {
 		BeginDrawing();
 		
 		{
-			ClearBackground(RAYWHITE);
+			ClearBackground(BLACK);
 
 			if (!IsKeyDown(KEY_LEFT_SHIFT)) {
 				BeginMode2D(camera);

@@ -2,6 +2,7 @@
 #include "player.h"
 #include "../map/map.h"
 #include <stdio.h>
+#include <cmath>
 
 Entity::~Entity() {}
 
@@ -11,11 +12,11 @@ void Entity::Draw() {
 }
 
 void Entity::Update(Player *p, std::vector<Entity *> &e, Map *map) {
-	fprintf(stderr, "Called Update on Entity");
+	fprintf(stderr, "Called Update on Entity\n");
 }
 
 bool Entity::checkCollision(Entity *e) {
-	fprintf(stderr, "Called Update on Entity");
+	fprintf(stderr, "Called Update on Entity\n");
 	return -1;
 }
 
@@ -34,7 +35,16 @@ void Entity::receiveDamage(Player *p) {
 		if (this->stats.hp <= 0){
 			this->stats.hp = 0;
 			this->dead = 1;
-			p->itemDrops.push_back(new Item("HEAL", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
+			f32 result = randomFloat(0.0f, 100.0f);
+
+			if (result >= 50.0f && result <= 75.0f)
+				p->itemDrops.push_back(new Item("HEAL", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
+			else if (result > 75.0f && result <= 99.0f)
+				p->itemDrops.push_back(new Item("STAM", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
+			else if (result > 99.0f && result <= 99.5f)
+				p->itemDrops.push_back(new Item("ATT", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
+			// else if (result > 99.5f && result <= 100.0f)
+				// p->itemDrops.push_back(new Item("DEF", 1, this->pos, p->itemDrops.size(), p->itemDrops[0]->texture));
 	}
 
 	if (this->hit)
@@ -46,7 +56,7 @@ f32 getAngle(f32 x, f32 y) {
 	if (x == 0 && y == 0)
 		return -1.0f;
 	f32 angle = atan2(y, x);
-	angle = (angle / M_PI) * 180.0f;
+	angle = (angle / PI) * 180.0f;
 	angle += 45.0f;
 	if (angle <= 0.0f)
 		angle += 360.0f;
@@ -187,3 +197,8 @@ void Entity::collide(std::vector<Entity *> &e) {
 		}
 	}
 };
+
+f32 calcDamage(Entity *attacker, Entity *defender) {
+	f32 result = std::pow(1.029186009, -defender->stats.def);
+	return result * attacker->stats.str;
+}

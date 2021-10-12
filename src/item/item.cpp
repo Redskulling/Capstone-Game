@@ -32,7 +32,10 @@ Slot::Slot() : item(Item()) {}
 
 Slot::~Slot() {}
 
-Inventory::Inventory() : slots{{Slot()}}, armourSlots{{Slot()}}, holdSlots{{Slot()}} {}
+Inventory::Inventory() : slots{{Slot()}}, armourSlots{{Slot()}}, holdSlots{{Slot()}} {
+	this->slots[0].item.pos = { 12, 92 };
+	this->slots[1].item.pos = { 52, 92 };
+}
 
 
 u8 Inventory::addItem(Item &item) {
@@ -43,7 +46,9 @@ u8 Inventory::addItem(Item &item) {
 			return 2;
 		}
 		if (this->slots[i].item.name == "NULL") {
-			this->slots[i].item = item;
+			this->slots[i].item.name = item.name;
+			this->slots[i].item.count = item.count;
+			this->slots[i].item.texture = item.texture;
 			item.name = "NULL";
 			item.count = 0;
 			return 1;
@@ -86,25 +91,25 @@ u8 Inventory::useItem(u32 slot) {
 		this->slots[slot].item.count -= 1;
 		if (this->slots[slot].item.count == 0) 
 			this->slots[slot].item.name = "NULL";
-		return 1;
+		return POTION_HEALTH;
 	}
 	else if (a == "ATT") {
 		this->slots[slot].item.count -= 1;
 		if (this->slots[slot].item.count == 0) 
 			this->slots[slot].item.name = "NULL";
-		return 2;
+		return POTION_ATTACK;
 	}
 	else if (a == "DEF") {
 		this->slots[slot].item.count -= 1;
 		if (this->slots[slot].item.count == 0) 
 			this->slots[slot].item.name = "NULL";
-		return 3;
+		return POTION_DEFENCE;
 	}
 	else if (a == "STAM") {
 		this->slots[slot].item.count -= 1;
 		if (this->slots[slot].item.count == 0) 
 			this->slots[slot].item.name = "NULL";
-		return 4;
+		return POTION_STAMINA;
 	}
 	return 0;
 }

@@ -17,6 +17,7 @@ u32 randomUInt() {
 	return lehmer32();
 }
 
+// [min, max)
 s32 randomInt(s32 min, s32 max) {
 	return(lehmer32() % (max - min)) + min;
 }

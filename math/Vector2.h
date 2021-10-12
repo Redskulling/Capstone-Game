@@ -1,6 +1,9 @@
 #pragma once
 #include "../src/types.h"
+#define raylib
+#ifdef raylib
 #include <raylib.h>
+#endif
 #include <math.h>
 
 template <class T>
@@ -12,13 +15,17 @@ struct Vector2d {
 
 	T x, y;
 
+	#ifdef raylib
 	operator Vector2() const;
+	#endif
 	operator bool()    const;
 	// operator Vector2d<T>() const;
 
 	bool operator ==(const Vector2d &rhs)  const;
 
+	#ifdef raylib
 	inline Vector2d(Vector2 vec) : x(vec.x), y(vec.y) {} ;
+	#endif
 
 	Vector2d operator+= (const Vector2d &rhs); 
 	Vector2d operator+  (const Vector2d &rhs);
@@ -51,5 +58,5 @@ typedef Vector2d<f32> v2f;
 typedef Vector2d<s32> v2i;
 typedef Vector2d<u8>  v2u8;
 
-Vector2d<s32> Vec2fToVec2i(Vector2d<s32> *out, const Vector2d<f32> &in);
-Vector2d<f32> Vec2iToVec2f(Vector2d<f32> *out, const Vector2d<s32> &in);
+// Vector2d<s32> Vec2fToVec2i(Vector2d<s32> *out, const Vector2d<f32> &in);
+// Vector2d<f32> Vec2iToVec2f(Vector2d<f32> *out, const Vector2d<s32> &in);

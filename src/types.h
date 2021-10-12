@@ -25,3 +25,13 @@ typedef float f32;
 #define INPUT_SPRINT_PRESSED 0x0008
 #define INPUT_ITEM_1         0x0010
 #define INPUT_ITEM_2         0x0020
+#define INPUT_PAUSE          0x0040
+
+#define POTION_HEALTH  1
+#define POTION_DEFENCE 2
+#define POTION_ATTACK  3
+#define POTION_STAMINA 4
+
+extern s32 gTimeStop;
+#define TIME_STOP_ENABLED 0x01
+#define TIME_STOP_ALL     0x02

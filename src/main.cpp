@@ -1,3 +1,4 @@
+#include <raylib.h>
 #include "types.h"
 
 #include "../math/random.h"
@@ -29,6 +30,7 @@ typedef Color Colour;
 
 
 #define MAX_BUILDINGS 100
+s32 gTimeStop = 1;
 
 int main(void) {
 
@@ -39,6 +41,7 @@ int main(void) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
 	InitWindow(screenWidth, screenHeight, "Title?");
+	HideCursor();
 
 	Texture2D potions = LoadTexture("img/potions.png");
 	Texture2D slime   = LoadTexture("img/cube.png");
@@ -60,14 +63,14 @@ int main(void) {
 	// for (int i = 0; i < 5; i++)
 	// 	item.push_back(new Item{"STAM", randomInt(1, 10), {randomFloat(100, 200), randomFloat(100, 200)}, (s32) item.size(), &potions});
 
-	std::vector<Entity *> e;
+	std::vector<Entity *> entity;
 
 	Camera2D camera = { 0 };
 	Texture2D playerTexture = LoadTexture("img/player.png");
-	Player *player = new Player({0.0f, 0.0f}, GAMEPAD_PLAYER1, 16.0f, item, &playerTexture);
+	Player *player = new Player({0.0f, 0.0f}, 0, 16.0f, item, &playerTexture);
 	player->forwardVel = 120.0f;
 
-	e.push_back(player);
+	entity.push_back(player);
 
 	player->setState(PLAYER_STATE_STATIONARY);
 
@@ -86,30 +89,33 @@ int main(void) {
 	// camera2.rotation = 0.0f;
 	// camera2.zoom = 1.0f;
 
-	Map *currentMap = new Map("map0.map", "img/tileset.png", e, slime);
-	currentMap->NewMap(e);
+	Map *currentMap = new Map("map1.map", "img/tileset.png", entity, slime);
 
 	s32 itemNumber = 0;
 
 	while (!WindowShouldClose()) {
 
-		for (Entity *entities : e)
+		for (Entity *entities : entity)
 			entities->deltaTime = GetFrameTime();
 
 		// player->deltaTime = GetFrameTime();
 		
 		getPlayerInput(player);
 
-		// if (IsKeyPressed(KEY_F5))
-		// 	currentMap->NewMap(e);
-
-
-		for (auto &ent : e)
-			if (ent->id != 0)
-				ent->Update(player, e, currentMap);
-
-		player->Update(player, e, currentMap);
-		// runPlayerState(player);
+		if (!(gTimeStop &= (TIME_STOP_ALL | TIME_STOP_ENABLED))) {
+			for (auto &ent : entity)
+				if (ent->id != 0)
+					ent->Update(player, entity, currentMap);
+		}
+		
+		if (!(gTimeStop &= TIME_STOP_ALL))
+			player->Update(player, entity, currentMap);
+			
+		if (player->input & INPUT_PAUSE) {
+			gTimeStop ^= TIME_STOP_ALL;
+			puts("hello");
+		}
+	
 
 		camera.target = (Vector2) (player->pos + player->size / 2.0f).floor();
 		// camera2.target = (Vector2) (e[5]->pos + e[5]->size / 2.0f).floor();
@@ -119,22 +125,20 @@ int main(void) {
 		
 		{
 
-			ClearBackground(RAYWHITE);
+			ClearBackground(BLACK);
 
 
 			BeginMode2D(camera);
 
 			currentMap->Draw(camera);
 
-			for (auto &ent : e)
+			for (auto &ent : entity)
 				ent->Draw();
 
 			for (Item *drop : item)
 				drop->Draw();
 
-			DrawCircle(player->hitbox.centre.x, player->hitbox.centre.y, player->hitbox.radius, GREEN);
-
-			DrawText(TextFormat("TIME: %f", GetFrameTime()), 10, 100, 20, BLACK);
+			DrawText(TextFormat("TIME: %X", gTimeStop), 10, 100, 20, BLACK);
 
 			itemNumber += GetMouseWheelMove();
 			if (itemNumber >= (s32) player->inventory.slots.size())
@@ -160,7 +164,7 @@ int main(void) {
 			// BeginMode2D(camera2);
 			// BeginScissorMode(GetScreenWidth() - 250, GetScreenHeight() - 250, 250, 250);
 			// ClearBackground(LIGHTGRAY);
-			// for (int i = 0; i < e.size(); i++)
+			// for (int i = 0; i < entity.size(); i++)
 			// 	(e[i])->Draw();
 
 			// currentMap->Draw(camera);
@@ -168,11 +172,12 @@ int main(void) {
 			// EndScissorMode();
 			// EndMode2D();
 
+
 		}
 
 		f32 currentHP = map(player->stats.hp, 1, player->stats.maxhp, 10, GetScreenWidth() / 10);
 
-		const char *hptxt = TextFormat("HP: %i/%i", player->stats.hp, player->stats.maxhp);
+		const char *hptxt = TextFormat("HP: %.2f/%.2f", player->stats.hp, player->stats.maxhp);
 		const char *sptxt = TextFormat("Stanima: %.0f/%.0f", player->stamina, player->maxStamina);
 		const char *xptxt = TextFormat("XP: %i/%i", player->xp, player->nextLevel);
 		if (MeasureText(xptxt, 20) < MeasureText(sptxt, 20))
@@ -193,6 +198,18 @@ int main(void) {
 		DrawRectangle(10, 58, currentXP, 20, PURPLE );
 		DrawText(xptxt, GetScreenWidth() / 10 + 20, 56, 20, PURPLE);	
 
+		DrawRectangle(10, 90, 34, 34, DARKGRAY);
+		player->inventory.slots[0].item.Draw();
+
+		DrawRectangle(50, 90, 34, 34, DARKGRAY);
+		player->inventory.slots[1].item.Draw();
+
+
+		if (gTimeStop & (TIME_STOP_ALL))
+			player->drawPauseScreen();
+
+		DrawCircle(GetMouseX(), GetMouseY(), 5, GREEN);
+
 		EndDrawing();
 
 		if (IsWindowResized()) {
@@ -206,9 +223,9 @@ int main(void) {
 			camera.zoom -= 0.1f;
 	}
 
-	for (auto &a : e)
+	for (auto &a : entity)
 		delete a;
-	e.clear();
+	entity.clear();
 
 	for (auto &a : item)
 		delete a;

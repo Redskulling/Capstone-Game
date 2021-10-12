@@ -2,11 +2,12 @@
 #include "../../math/Vector2.h"
 #include "../types.h"
 #include <vector>
-#include "../../ray/raylib.h"
+#include <raylib.h>
 
 #ifndef MAP_DEBUG
 #include "../entity/entity.h"
 #include "../entity/slime.h"
+#include "../entity/void.h"
 #endif
 
 struct Tile {
@@ -37,8 +38,9 @@ struct Map {
 
 	void Draw(Camera2D &camera);
 	Rectangle Rect(v2f pos);
+	#ifndef MAP_DEBUG
 	void NewMap(std::vector<Entity *>&);
-
+	#endif
 	void WriteToFile(const char *file);
 	void ReadFromFile(const char *file
 #ifndef MAP_DEBUG
